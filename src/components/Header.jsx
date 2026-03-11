@@ -25,8 +25,7 @@ export default function Header({ onMenuClick }) {
                 <a href="#about">About</a>
                 <a href="#contact">Contact</a>
                 <div className="auth-buttons">
-                    <a href="/login" className="btn btn-outline">Log In</a>
-                    <a href="/signup" className="btn btn-primary">Sign Up</a>
+                    <a href="/signup" className="btn btn-primary">Sign Up / Login</a>
                 </div>
             </nav>
         </header>
