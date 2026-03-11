@@ -1,0 +1,918 @@
+/* ==========================================================================
+   HOME PAGE WITH GRAPHICS & ANIMATIONS
+   ========================================================================== */
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes float-reverse {
+    0%, 100% { transform: translateY(-20px); }
+    50% { transform: translateY(0px); }
+}
+
+@keyframes bubble-float {
+    0% {
+        bottom: -10px;
+        opacity: 1;
+    }
+    100% {
+        bottom: 120vh;
+        opacity: 0;
+    }
+}
+
+@keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Animation Classes */
+.animated {
+    animation-duration: 0.8s;
+    animation-fill-mode: both;
+}
+
+.fadeIn { animation-name: fadeIn; }
+.fadeInUp { animation-name: fadeInUp; }
+.slideInLeft { animation-name: slideInLeft; }
+.slideInRight { animation-name: slideInRight; }
+.slideInUp { animation-name: slideInUp; }
+
+.btn-pulse { animation: pulse 2s infinite; }
+
+/* SVG Graphics */
+.graphic-svg {
+    width: 100%;
+    height: 100%;
+    max-width: 150px;
+}
+
+.heartbeat {
+    animation: rotate-slow 20s linear infinite;
+}
+
+.medicine-bottle {
+    animation: float 4s ease-in-out infinite;
+}
+
+.shield {
+    animation: float 3.5s ease-in-out infinite;
+}
+
+.video-cam {
+    animation: float-reverse 3.8s ease-in-out infinite;
+}
+
+.stethoscope {
+    animation: float 4.2s ease-in-out infinite;
+}
+
+.clock {
+    animation: rotate-slow 8s linear infinite;
+}
+
+.chart {
+    animation: float 3.6s ease-in-out infinite;
+}
+
+/* Bubble Group */
+.bubble-group {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.bubble {
+    position: absolute;
+    bottom: -10px;
+    background: radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.2));
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: bubble-float linear infinite;
+}
+
+.bubble:nth-child(1) {
+    left: 10%;
+    width: 40px;
+    height: 40px;
+    animation-duration: 8s;
+    animation-delay: 0s;
+}
+
+.bubble:nth-child(2) {
+    left: 20%;
+    width: 60px;
+    height: 60px;
+    animation-duration: 10s;
+    animation-delay: 2s;
+}
+
+.bubble:nth-child(3) {
+    left: 40%;
+    width: 35px;
+    height: 35px;
+    animation-duration: 9s;
+    animation-delay: 1s;
+}
+
+.bubble:nth-child(4) {
+    left: 60%;
+    width: 50px;
+    height: 50px;
+    animation-duration: 11s;
+    animation-delay: 3s;
+}
+
+.bubble:nth-child(5) {
+    left: 80%;
+    width: 45px;
+    height: 45px;
+    animation-duration: 9.5s;
+    animation-delay: 1.5s;
+}
+
+.bubble:nth-child(6) {
+    left: 90%;
+    width: 55px;
+    height: 55px;
+    animation-duration: 10.5s;
+    animation-delay: 2.5s;
+}
+
+/* Hero Section */
+.hero {
+    position: relative;
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+    margin-bottom: 50px;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="30" fill="rgba(255,255,255,0.05)"/></svg>');
+    opacity: 0.1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-graphics {
+    position: relative;
+    height: 150px;
+    margin-bottom: 30px;
+}
+
+.graphic-float {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    opacity: 0.9;
+}
+
+.graphic-1 {
+    left: 5%;
+    top: 0;
+    animation: float 4s ease-in-out infinite;
+}
+
+.graphic-2 {
+    right: 5%;
+    top: 20px;
+    animation: float-reverse 4.5s ease-in-out infinite;
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    z-index: 3;
+    position: relative;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.95;
+    z-index: 3;
+    position: relative;
+}
+
+/* Stats Section */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 60px;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+    animation: rotate-slow 6s linear infinite;
+}
+
+.stat-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);
+}
+
+.stat-card .number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card .label {
+    font-size: 1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+}
+
+/* Feature Cards Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.feature-card {
+    padding: 30px;
+    border-radius: 15px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
+.feature-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
+    transform: translateY(-15px);
+}
+
+.feature-icon-container {
+    position: relative;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.feature-icon-container svg {
+    width: 100px;
+    height: 100px;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon-container svg {
+    transform: scale(1.15);
+    filter: drop-shadow(0 5px 15px rgba(79, 70, 229, 0.3));
+}
+
+.feature-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text);
+}
+
+.feature-description {
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.feature-footer {
+    border-top: 2px solid var(--border);
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.learn-more {
+    color: var(--primary);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.feature-card:hover .learn-more {
+    transform: translateX(5px);
+}
+
+/* Why Choose Section */
+.why-choose-section {
+    margin-bottom: 60px;
+    padding: 40px 0;
+}
+
+.why-choose-header {
+    text-align: center;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.why-choose-header h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 15px;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    margin-bottom: 20px;
+}
+
+.header-decoration {
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    margin: 0 auto;
+    border-radius: 2px;
+}
+
+.why-choose-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.why-choose-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    gap: 20px;
+    border-left: 4px solid transparent;
+    cursor: pointer;
+}
+
+.why-choose-card:hover {
+    border-left-color: var(--primary);
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.15);
+    transform: translateY(-8px);
+}
+
+.icon-wrapper {
+    flex-shrink: 0;
+}
+
+.icon-emoji {
+    font-size: 2.5rem;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.why-choose-card:hover .icon-emoji {
+    transform: scale(1.2) rotate(10deg);
+}
+
+.content-wrapper {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.card-description {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.card-benefit {
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.benefit-icon {
+    font-size: 1.2rem;
+}
+
+/* Benefits Text Block */
+.benefits-text-block {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 15px;
+    padding: 40px;
+    border: 2px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.benefits-text-block:hover {
+    border-color: var(--primary);
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.1);
+}
+
+.benefits-content {
+    position: relative;
+}
+
+.benefits-graphic {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.benefits-text-block:hover .benefits-graphic {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.benefits-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.benefits-content p {
+    color: var(--text-light);
+    font-size: 1rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.benefits-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.benefits-list li {
+    padding: 12px 15px;
+    background: white;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+}
+
+.benefits-list li:hover {
+    background: var(--primary-lighter);
+    color: var(--text);
+    transform: translateX(5px);
+}
+
+/* Impact Section */
+.impact-section {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    padding: 50px;
+    border-radius: 15px;
+    margin-bottom: 60px;
+}
+
+.impact-section h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: var(--text);
+}
+
+.impact-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+}
+
+.impact-intro {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-light);
+    margin-bottom: 25px;
+}
+
+.impact-list {
+    list-style: none;
+    padding: 0;
+}
+
+.impact-list li {
+    padding: 12px 0;
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.impact-list li:last-child {
+    border-bottom: none;
+}
+
+.impact-list li:hover {
+    color: var(--primary);
+    padding-left: 10px;
+}
+
+.impact-graphic {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+}
+
+.impact-graphic svg {
+    width: 100%;
+    max-width: 200px;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
+}
+
+/* How It Works Section */
+.how-it-works {
+    margin-bottom: 60px;
+    text-align: center;
+}
+
+.how-it-works h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 50px;
+    color: var(--text);
+}
+
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+}
+
+.step-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-top: 4px solid var(--primary);
+    position: relative;
+}
+
+.step-card:hover {
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.15);
+    transform: translateY(-10px);
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 auto 20px;
+}
+
+.step-graphic {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.step-card:hover .step-graphic {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+.step-graphic svg {
+    width: 100%;
+    height: 100%;
+}
+
+.step-card h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+}
+
+.step-card p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 40px;
+    border-radius: 15px;
+    text-align: center;
+    margin-bottom: 60px;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.05)"/><circle cx="80" cy="80" r="30" fill="rgba(255,255,255,0.03)"/></svg>');
+    opacity: 0.1;
+}
+
+.cta-content {
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.cta-section p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.95;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-large {
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary.btn-large {
+    background: white;
+    color: var(--primary);
+}
+
+.btn-primary.btn-large:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.btn-outline.btn-large {
+    border: 2px solid white;
+    color: white;
+    background: transparent;
+}
+
+.btn-outline.btn-large:hover {
+    background: white;
+    color: var(--primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .graphic-1, .graphic-2 {
+        width: 70px;
+        height: 70px;
+    }
+
+    .impact-content {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+    }
+
+    .btn-large {
+        width: 100%;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .why-choose-header h2 {
+        font-size: 1.8rem;
+    }
+
+    .steps-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cta-section {
+        padding: 40px 20px;
+    }
+
+    .cta-section h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding: 30px 15px;
+    }
+
+    .hero-title {
+        font-size: 1.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .hero-graphics {
+        height: 80px;
+    }
+
+    .graphic-1, .graphic-2 {
+        width: 50px;
+        height: 50px;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card .number {
+        font-size: 2rem;
+    }
+
+    .why-choose-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .icon-wrapper {
+        margin: 0 auto;
+    }
+
+    .steps-container {
+        grid-template-columns: 1fr;
+    }
+
+    .benefits-list {
+        grid-template-columns: 1fr;
+    }
+
+    .impact-graphic {
+        min-height: 150px;
+    }
+
+    .feature-icon-container {
+        height: 80px;
+    }
+
+    .feature-icon-container svg {
+        width: 70px;
+        height: 70px;
+    }
+}
