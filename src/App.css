@@ -1,0 +1,993 @@
+/* ==========================================================================
+   1. IMPORTS & VARIABLES
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,600&display=swap');
+
+:root {
+    --primary: #4F46E5;
+    --primary-dark: #4338CA;
+    --secondary: #818CF8;
+    --primary-light: #818CF8;
+    --primary-lighter: #C7D2FE;
+    --success: #34D399;
+    --warning: #FBBF24;
+    --danger: #EF4444;
+    --background: #F3F4F6;
+    --card: #FFFFFF;
+    --text: #1F2937;
+    --text-light: #6B7280;
+    --border: #E5E7EB;
+    --deerstalker: #8B4513;
+}
+
+/* ==========================================================================
+   2. GLOBAL & RESET
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 70px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+}
+
+/* ==========================================================================
+   3. LAYOUT (HEADER, NAV, FOOTER)
+   ========================================================================== */
+.header {
+    background-color: var(--card);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.logo {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    font-style: italic;
+    color: var(--primary);
+    letter-spacing: 1px;
+    text-decoration: none;
+}
+
+.header-nav {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.header-nav a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.header-nav a:hover {
+    color: var(--primary);
+}
+
+.nav-bar {
+    background: var(--card);
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    padding: 1rem;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+}
+
+.nav-bar a {
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+    padding: 0.5rem;
+}
+
+.nav-bar a:hover,
+.nav-bar a.active {
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.nav-bar a i {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.nav-bar a.active i {
+    color: var(--primary);
+}
+
+.footer {
+    background: var(--card);
+    padding: 3rem 0;
+    margin-top: 4rem;
+    border-top: 1px solid var(--border);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-section h3 {
+    color: var(--text);
+    margin-bottom: 1rem;
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+    color: var(--text-light);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-section ul li a:hover {
+    color: var(--primary);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-light);
+}
+
+/* ==========================================================================
+   4. REUSABLE COMPONENTS
+   ========================================================================== */
+.card {
+    background: var(--card);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary) !important;
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: white !important;
+}
+
+.input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.badge-success {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.divider {
+    text-align: center;
+    margin: 1rem 0;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background-color: var(--border);
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+/* ==========================================================================
+   5. PAGE: HOME
+   ========================================================================== */
+.hero {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    margin-bottom: 2rem;
+    border-radius: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+}
+
+.hero h1 {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero p {
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 0.9;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-card .number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .label {
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 2rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-card i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: none;
+}
+
+.toast.show {
+    display: block;
+    animation: slideUp 0.3s ease-out;
+}
+
+/* ==========================================================================
+   6. PAGE: AUTH (LOGIN & SIGNUP)
+   ========================================================================== */
+.login-container, .signup-container {
+    max-width: 400px;
+    margin: 4rem auto;
+}
+
+.signup-container {
+    max-width: 500px;
+}
+
+.login-header, .signup-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header i, .signup-header i {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.auth-input-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.social-login {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    background: transparent;
+}
+
+.social-btn:hover {
+    background-color: var(--background);
+}
+
+.terms {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.terms a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* ==========================================================================
+   7. PAGE: DIAGNOSIS
+   ========================================================================== */
+.symptom-search-container {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.symptom-search {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid var(--border);
+    border-radius: 1rem;
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: var(--background);
+}
+
+.symptom-search:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-lighter);
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.symptoms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.symptom-checkbox {
+    position: relative;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--card);
+}
+
+.symptom-checkbox:hover {
+    border-color: var(--primary-light);
+    background: var(--primary-lighter);
+    transform: translateY(-2px);
+}
+
+.symptom-checkbox input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 0.25rem;
+    border: 2px solid var(--border);
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.loading i {
+    color: var(--primary);
+    font-size: 2.5rem;
+    animation: spin 1s linear infinite;
+}
+
+.diagnosis-result {
+    display: none;
+    animation: slideUp 0.5s ease-out;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+}
+
+.condition-item {
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+}
+
+.condition-item:hover {
+    border-color: var(--primary-light);
+    transform: translateX(5px);
+}
+
+.recommendation-list {
+    list-style: none;
+    margin: 1rem 0;
+}
+
+.recommendation-list li {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--background);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.recommendation-list li i {
+    color: var(--primary);
+}
+
+/* ==========================================================================
+   8. PAGE: MEDICINE TRACKER
+   ========================================================================== */
+.medicine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.medicine-card {
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.medicine-card:hover {
+    transform: translateY(-2px);
+}
+
+.medicine-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.status-due {
+    background-color: var(--warning);
+    animation: pulse 2s infinite;
+}
+
+.status-taken {
+    background-color: var(--success);
+}
+
+.medicine-details {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.medicine-icon {
+    width: 48px;
+    height: 48px;
+    background-color: var(--primary);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.schedule-timeline {
+    display: flex;
+    justify-content: space-between;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+.schedule-timeline::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 2px;
+    background-color: var(--border);
+    z-index: 0;
+}
+
+.timeline-point {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.timeline-point.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+.add-medicine-form {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 500px;
+    width: 90%;
+}
+
+.form-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.progress-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(var(--primary) 270deg, var(--border) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.progress-circle::before {
+    content: '75%';
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* ==========================================================================
+   9. PAGE: PROFILE
+   ========================================================================== */
+.profile-header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--card);
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--primary);
+    position: relative;
+}
+
+.stat-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.stat-box i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+
+.stat-info h4 {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.stat-info p {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.profile-section h3 {
+    margin-bottom: 1rem;
+    color: var(--text);
+    font-size: 1.25rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: var(--text-light);
+}
+
+.detail-value {
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   10. PAGE: TELEMEDICINE (CHAT)
+   ========================================================================== */
+.chat-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: calc(100vh - 140px);
+    overflow: hidden;
+}
+
+.chat-header {
+    background: var(--card);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.doctor-info h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.doctor-info p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.chat-container {
+    background: var(--card);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-window {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    scroll-behavior: smooth;
+}
+
+.message {
+    margin: 0.75rem 0;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+}
+
+.message.user .message-wrapper {
+    align-items: flex-end;
+}
+
+.message.user .message-content {
+    background: var(--primary);
+    color: white;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: white;
+    flex-shrink: 0;
+    background: var(--primary-light);
+}
+
+.avatar.user {
+    background: var(--primary);
+}
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+    gap: 0.25rem;
+}
+
+.message-sender {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+}
+
+.message-content {
+    background: var(--background);
+    padding: 1rem;
+    border-radius: 0.75rem;
+    position: relative;
+}
+
+.message-timestamp {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 0.5rem;
+}
+
+.message.user .message-timestamp {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.input-area {
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 1rem;
+}
+
+.input-area .input-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+    background: var(--background);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+}
+
+.input-area textarea {
+    flex: 1;
+    border: none;
+    background: transparent;
+    resize: none;
+    padding: 0.5rem;
+    font-size: 0.975rem;
+    max-height: 120px;
+    color: var(--text);
+    line-height: 1.5;
+    outline: none;
+}
+
+.send-button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.send-button:disabled {
+    background: var(--text-light);
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   11. ANIMATIONS & MEDIA QUERIES
+   ========================================================================== */
+@keyframes slideUp {
+    from { transform: translate(-50%, 100%); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hero {
+        padding: 3rem 1rem;
+    }
+
+    .header-nav {
+        display: none; /* Can be replaced with a hamburger menu state in React */
+    }
+
+    .message-wrapper {
+        max-width: 85%;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+    .auth-input-group {
+        grid-template-columns: 1fr;
+    }
+}
