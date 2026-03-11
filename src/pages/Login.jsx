@@ -1,5 +1,5 @@
 import React from 'react';
-import BottomNav from './BottomNav';
+import BottomNav from '../components/BottomNav';
 
 export default function Login() {
     const handleLogin = (e) => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import Header from './Header';
-import BottomNav from './BottomNav';
+import Header from '../components/Header';
+import BottomNav from '../components/BottomNav';
 
 // A small reusable component for your animated numbers
 const StatCard = ({ endValue, label, suffix = "" }) => {
