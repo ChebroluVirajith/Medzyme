@@ -17,6 +17,7 @@ export default function MedicineTracker() {
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadError, setUploadError] = useState(null);
 
     const [medicines, setMedicines] = useState([]);
     const [records, setRecords] = useState([]);
@@ -36,17 +37,32 @@ export default function MedicineTracker() {
         'Lab Report': '🔬', 'Other': '📄',
     }[type] || '📄');
 
-    // Get user from localStorage
+    // Get user from localStorage - FIXED: Better user detection
     useEffect(() => {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            const parsedUser = JSON.parse(stored);
-            setUser(parsedUser);
-            fetchMedicines(parsedUser.uid);
-            fetchRecords(parsedUser.uid);
-        } else {
-            setLoading(false);
-        }
+        const initializeUser = () => {
+            try {
+                const stored = localStorage.getItem('user');
+                console.log('📱 Checking localStorage for user...');
+                
+                if (stored) {
+                    const parsedUser = JSON.parse(stored);
+                    console.log('✅ User found:', parsedUser.uid);
+                    setUser(parsedUser);
+                    fetchMedicines(parsedUser.uid);
+                    fetchRecords(parsedUser.uid);
+                } else {
+                    console.log('❌ No user in localStorage');
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('❌ Error initializing user:', error);
+                setLoading(false);
+            }
+        };
+
+        // Small delay to ensure localStorage is ready
+        const timer = setTimeout(initializeUser, 100);
+        return () => clearTimeout(timer);
     }, []);
 
     const fetchMedicines = async (uid) => {
@@ -73,48 +89,93 @@ export default function MedicineTracker() {
 
     // Upload file to Firebase Storage
     const uploadFile = (file, uid) => {
-    return new Promise((resolve, reject) => {
-        console.log('Starting upload:', file.name, file.size, file.type);
-        
-        const timestamp = Date.now();
-        const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const filePath = `healthRecords/${uid}/${timestamp}_${cleanName}`;
-        
-        console.log('Upload path:', filePath);
-        console.log('Storage bucket:', storage.app.options.storageBucket);
+        return new Promise((resolve, reject) => {
+            try {
+                // Validate inputs
+                if (!file) {
+                    reject(new Error('No file provided'));
+                    return;
+                }
+                if (!uid) {
+                    reject(new Error('User ID is required for upload'));
+                    return;
+                }
 
-        const storageRef = ref(storage, filePath);
-        
-        const uploadTask = uploadBytesResumable(storageRef, file, {
-            contentType: file.type,
-        });
+                // Validate file size (10MB max)
+                const MAX_FILE_SIZE = 10 * 1024 * 1024;
+                if (file.size > MAX_FILE_SIZE) {
+                    reject(new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB (max 10MB)`));
+                    return;
+                }
 
-        uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-                const progress = Math.round(
-                    (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                console.log('📤 Starting file upload:', file.name);
+
+                const timestamp = Date.now();
+                const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 50);
+                const filePath = `healthRecords/${uid}/${timestamp}_${cleanName}`;
+
+                console.log('📍 Upload path:', filePath);
+
+                const storageRef = ref(storage, filePath);
+
+                const uploadTask = uploadBytesResumable(storageRef, file, {
+                    contentType: file.type || 'application/octet-stream',
+                });
+
+                uploadTask.on(
+                    'state_changed',
+                    (snapshot) => {
+                        const progress = Math.round(
+                            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                        );
+                        console.log('⏳ Upload progress:', progress + '%');
+                        setUploadProgress(progress);
+                    },
+                    (error) => {
+                        console.error('❌ Upload error:', error.code, error.message);
+                        
+                        let userMsg = 'Upload failed: ';
+                        if (error.code === 'storage/unauthorized') {
+                            userMsg += 'Not authorized. Check Firebase security rules.';
+                        } else if (error.code === 'storage/unknown') {
+                            userMsg += 'Network error. Check your connection.';
+                        } else if (error.code === 'storage/unauthenticated') {
+                            userMsg += 'User not authenticated.';
+                        } else {
+                            userMsg += error.message;
+                        }
+                        
+                        reject(new Error(userMsg));
+                    },
+                    async () => {
+                        try {
+                            console.log('✅ Upload complete, getting download URL...');
+                            const downloadURL = await getDownloadURL(storageRef);
+                            console.log('✅ Download URL received');
+                            resolve({ downloadURL, filePath });
+                        } catch (urlErr) {
+                            console.error('❌ Failed to get download URL:', urlErr);
+                            reject(new Error('Upload succeeded but could not get download link'));
+                        }
+                    }
                 );
-                console.log('Upload progress:', progress, '%');
-                setUploadProgress(progress);
-            },
-            (error) => {
-                console.error('Upload error code:', error.code);
-                console.error('Upload error message:', error.message);
-                console.error('Upload error details:', error);
-                reject(error);
-            },
-            async () => {
-                console.log('Upload complete!');
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                console.log('Download URL:', downloadURL);
-                resolve({ downloadURL, filePath });
+            } catch (err) {
+                console.error('❌ Upload error:', err);
+                reject(err);
             }
-        );
-    });
-};
+        });
+    };
+
     const addMedicine = async () => {
-        if (!newMedicine.name || !user) return;
+        if (!newMedicine.name) {
+            alert('Please enter a medicine name');
+            return;
+        }
+        if (!user || !user.uid) {
+            alert('User not authenticated. Please log in again.');
+            return;
+        }
+
         try {
             const docRef = await addDoc(collection(db, 'medicines'), {
                 ...newMedicine,
@@ -127,88 +188,131 @@ export default function MedicineTracker() {
             setShowMedicineModal(false);
         } catch (err) {
             console.error('Error adding medicine:', err);
+            alert('Error adding medicine: ' + err.message);
+        }
+    };
+
+    const toggleTaken = async (medicineId, currentStatus) => {
+        try {
+            const medicineRef = doc(db, 'medicines', medicineId);
+            await updateDoc(medicineRef, { taken: !currentStatus });
+            setMedicines(medicines.map(med =>
+                med.id === medicineId ? { ...med, taken: !currentStatus } : med
+            ));
+        } catch (err) {
+            console.error('Error updating medicine:', err);
+        }
+    };
+
+    const deleteMedicine = async (medicineId) => {
+        if (window.confirm('Delete this medicine?')) {
+            try {
+                await deleteDoc(doc(db, 'medicines', medicineId));
+                setMedicines(medicines.filter(med => med.id !== medicineId));
+            } catch (err) {
+                console.error('Error deleting medicine:', err);
+            }
+        }
+    };
+
+    const deleteRecord = async (recordId, filePath) => {
+        if (window.confirm('Delete this record?')) {
+            try {
+                if (filePath) {
+                    try {
+                        const fileRef = ref(storage, filePath);
+                        await deleteObject(fileRef);
+                    } catch (storageErr) {
+                        console.warn('Could not delete file:', storageErr);
+                    }
+                }
+                await deleteDoc(doc(db, 'healthRecords', recordId));
+                setRecords(records.filter(rec => rec.id !== recordId));
+            } catch (err) {
+                console.error('Error deleting record:', err);
+            }
         }
     };
 
     const addRecord = async () => {
-    if (!newRecord.type || !user) return;
-    setUploading(true);
-    setUploadProgress(0);
+        // FIXED: Check user BEFORE attempting save
+        if (!user || !user.uid) {
+            alert('❌ User not authenticated. Please log in again.');
+            console.error('❌ User is missing or has no uid:', user);
+            return;
+        }
 
-    try {
+        if (!newRecord.type) {
+            alert('Please select a record type.');
+            return;
+        }
+
+        setUploading(true);
+        setUploadProgress(0);
+        setUploadError(null);
+
         let fileData = { fileName: '', fileUrl: '', fileType: '', filePath: '' };
 
-        if (selectedFile) {
-            console.log('File selected:', selectedFile.name);
-            console.log('User uid:', user.uid);
-            
-            try {
-                const { downloadURL, filePath } = await uploadFile(selectedFile, user.uid);
-                fileData = {
-                    fileName: selectedFile.name,
-                    fileUrl: downloadURL,
-                    fileType: selectedFile.type,
-                    filePath: filePath,
-                };
-            } catch (uploadErr) {
-                console.error('File upload failed:', uploadErr);
-                alert('File upload failed: ' + uploadErr.message + '\nSaving record without file.');
-                // Continue saving record without file
+        try {
+            // Upload file if selected
+            if (selectedFile) {
+                try {
+                    console.log('📤 Uploading file with UID:', user.uid);
+                    const { downloadURL, filePath } = await uploadFile(selectedFile, user.uid);
+                    fileData = {
+                        fileName: selectedFile.name,
+                        fileUrl: downloadURL,
+                        fileType: selectedFile.type,
+                        filePath: filePath,
+                    };
+                    console.log('✅ File uploaded successfully');
+                } catch (uploadErr) {
+                    console.error('❌ File upload failed:', uploadErr);
+                    setUploadError(uploadErr.message);
+                    const proceed = window.confirm(
+                        'File upload failed: ' + uploadErr.message + '\n\nSave record without file?'
+                    );
+                    if (!proceed) {
+                        setUploading(false);
+                        return;
+                    }
+                }
             }
-        }
 
-        const recordData = {
-            type: newRecord.type,
-            date: newRecord.date,
-            doctor: newRecord.doctor,
-            notes: newRecord.notes,
-            ...fileData,
-            uid: user.uid,
-            createdAt: new Date().toISOString(),
-        };
+            // FIXED: Ensure uid is not undefined
+            const recordData = {
+                type: newRecord.type,
+                date: newRecord.date,
+                doctor: newRecord.doctor,
+                notes: newRecord.notes,
+                ...fileData,
+                uid: user.uid,  // ✅ Explicitly ensure this is set
+                createdAt: new Date().toISOString(),
+            };
 
-        const docRef = await addDoc(collection(db, 'healthRecords'), recordData);
-        setRecords([...records, { id: docRef.id, ...recordData }]);
-        setNewRecord({ type: '', date: '', doctor: '', notes: '', fileName: '', fileUrl: '', fileType: '', filePath: '' });
-        setSelectedFile(null);
-        setShowRecordModal(false);
-    } catch (err) {
-        console.error('Error saving record:', err);
-        alert('Error saving record: ' + err.message);
-    }
-    
-    setUploading(false);
-    setUploadProgress(0);
-};
-    const toggleTaken = async (id, currentTaken) => {
-        try {
-            await updateDoc(doc(db, 'medicines', id), { taken: !currentTaken });
-            setMedicines(medicines.map(m => m.id === id ? { ...m, taken: !currentTaken } : m));
-        } catch (err) {
-            console.error('Error updating:', err);
-        }
-    };
-
-    const deleteMedicine = async (id) => {
-        try {
-            await deleteDoc(doc(db, 'medicines', id));
-            setMedicines(medicines.filter(m => m.id !== id));
-        } catch (err) {
-            console.error('Error deleting:', err);
-        }
-    };
-
-    const deleteRecord = async (id, filePath) => {
-        try {
-            // Delete file from Storage if exists
-            if (filePath) {
-                const fileRef = ref(storage, filePath);
-                await deleteObject(fileRef).catch(() => {}); // ignore if already deleted
+            // Validate before saving
+            if (!recordData.uid) {
+                throw new Error('User ID is undefined - cannot save record');
             }
-            await deleteDoc(doc(db, 'healthRecords', id));
-            setRecords(records.filter(r => r.id !== id));
+
+            console.log('💾 Saving record with UID:', recordData.uid);
+            const docRef = await addDoc(collection(db, 'healthRecords'), recordData);
+            console.log('✅ Record saved:', docRef.id);
+
+            setRecords(prev => [...prev, { id: docRef.id, ...recordData }]);
+            setNewRecord({ type: '', date: '', doctor: '', notes: '', fileName: '', fileUrl: '', fileType: '', filePath: '' });
+            setSelectedFile(null);
+            setUploadProgress(0);
+            setUploadError(null);
+            setUploading(false);
+            setShowRecordModal(false);
+            alert('✅ Record saved successfully!');
+
         } catch (err) {
-            console.error('Error deleting record:', err);
+            console.error('❌ Error saving record:', err);
+            setUploadError('Error saving record: ' + err.message);
+            setUploading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -450,7 +554,7 @@ export default function MedicineTracker() {
             {showRecordModal && (
                 <>
                     <div className="form-overlay" style={{ display: 'block' }} onClick={() => setShowRecordModal(false)}></div>
-                    <div className="add-medicine-form" style={{ display: 'block' }}>
+                    <div className="add-medicine-form" style={{ display: 'block', maxHeight: '90vh', overflowY: 'auto' }}>
                         <h2>Add Health Record</h2>
 
                         <select className="input" value={newRecord.type}
@@ -472,17 +576,18 @@ export default function MedicineTracker() {
 
                         {/* File Upload */}
                         <div
-                            onClick={() => document.getElementById('record-file-upload').click()}
+                            onClick={() => !uploading && document.getElementById('record-file-upload').click()}
                             style={{
                                 border: '2px dashed',
                                 borderColor: selectedFile ? '#10b981' : '#d1d5db',
                                 borderRadius: '10px', padding: '20px',
-                                textAlign: 'center', cursor: 'pointer',
+                                textAlign: 'center', cursor: uploading ? 'not-allowed' : 'pointer',
                                 background: selectedFile ? '#f0fdf4' : '#fafafa',
                                 transition: 'all 0.2s ease',
+                                opacity: uploading ? 0.6 : 1,
                             }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = '#667eea'}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = selectedFile ? '#10b981' : '#d1d5db'}
+                            onMouseEnter={e => !uploading && (e.currentTarget.style.borderColor = '#667eea')}
+                            onMouseLeave={e => !uploading && (e.currentTarget.style.borderColor = selectedFile ? '#10b981' : '#d1d5db')}
                         >
                             <input
                                 id="record-file-upload"
@@ -490,6 +595,7 @@ export default function MedicineTracker() {
                                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                                 style={{ display: 'none' }}
                                 onChange={e => setSelectedFile(e.target.files[0] || null)}
+                                disabled={uploading}
                             />
                             {selectedFile ? (
                                 <div>
@@ -508,7 +614,7 @@ export default function MedicineTracker() {
                                 <div>
                                     <div style={{ fontSize: '1.5rem', marginBottom: '6px' }}>📎</div>
                                     <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0, fontWeight: '500' }}>
-                                        Attach File
+                                        Attach File (Optional)
                                     </p>
                                     <p style={{ color: '#9ca3af', fontSize: '0.78rem', margin: '4px 0 0' }}>
                                         PDF, JPG, PNG, DOC · Max 10MB
@@ -520,11 +626,11 @@ export default function MedicineTracker() {
                         {/* Upload Progress Bar */}
                         {uploading && (
                             <div style={{ marginTop: '12px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                    <span style={{ fontSize: '0.82rem', color: '#6b7280' }}>Uploading...</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <span style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: '600' }}>Uploading...</span>
                                     <span style={{ fontSize: '0.82rem', color: '#667eea', fontWeight: '600' }}>{uploadProgress}%</span>
                                 </div>
-                                <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
+                                <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
                                     <div style={{
                                         height: '100%', borderRadius: '999px',
                                         background: 'linear-gradient(90deg, #667eea, #764ba2)',
@@ -535,20 +641,48 @@ export default function MedicineTracker() {
                             </div>
                         )}
 
+                        {/* Error Message */}
+                        {uploadError && (
+                            <div style={{
+                                marginTop: '12px',
+                                padding: '12px',
+                                background: '#fee2e2',
+                                border: '1px solid #fca5a5',
+                                borderRadius: '8px',
+                                color: '#dc2626',
+                                fontSize: '0.85rem',
+                            }}>
+                                ⚠️ {uploadError}
+                            </div>
+                        )}
+
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                             <button
                                 className="btn btn-primary"
-                                style={{ flex: 1, opacity: uploading ? 0.7 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
-                                onClick={addRecord}
-                                disabled={uploading}
+                                style={{ 
+                                    flex: 1, 
+                                    opacity: uploading ? 0.7 : 1, 
+                                    cursor: uploading ? 'not-allowed' : 'pointer' 
+                                }}
+                                onClick={() => {
+                                    if (!uploading) addRecord();
+                                }}
                             >
                                 {uploading ? `Uploading ${uploadProgress}%...` : 'Save Record'}
                             </button>
-                            <button className="btn" style={{ flex: 1 }} onClick={() => {
-                                setShowRecordModal(false);
-                                setSelectedFile(null);
-                                setNewRecord({ type: '', date: '', doctor: '', notes: '', fileName: '', fileUrl: '', fileType: '', filePath: '' });
-                            }}>
+                            <button 
+                                className="btn" 
+                                style={{ flex: 1, cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}
+                                onClick={() => {
+                                    if (!uploading) {
+                                        setShowRecordModal(false);
+                                        setSelectedFile(null);
+                                        setNewRecord({ type: '', date: '', doctor: '', notes: '', fileName: '', fileUrl: '', fileType: '', filePath: '' });
+                                        setUploadError(null);
+                                    }
+                                }}
+                                disabled={uploading}
+                            >
                                 Cancel
                             </button>
                         </div>
