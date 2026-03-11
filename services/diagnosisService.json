@@ -1,0 +1,430 @@
+const axios = require("axios");
+const medicalDataset = require("../data/medicalDataset.json");
+
+const EMERGENCY_KEYWORDS = [
+    "chest pain",
+    "severe shortness of breath",
+    "difficulty breathing",
+    "fainting",
+    "seizure",
+    "confusion",
+    "blue lips",
+    "blood in stool",
+    "vomiting blood",
+    "worst headache"
+];
+
+function normalizeText(input = "") {
+    return String(input)
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function includesPhrase(haystack, phrase) {
+    const normalizedHaystack = normalizeText(haystack);
+    const normalizedPhrase = normalizeText(phrase);
+
+    if (!normalizedHaystack || !normalizedPhrase) {
+        return false;
+    }
+
+    if (normalizedPhrase.includes(" ")) {
+        return normalizedHaystack.includes(normalizedPhrase);
+    }
+
+    const regex = new RegExp(`\\b${escapeRegExp(normalizedPhrase)}\\b`);
+    return regex.test(normalizedHaystack);
+}
+
+function uniqueBy(items, keyBuilder) {
+    const seen = new Set();
+    return items.filter((item) => {
+        const key = keyBuilder(item);
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
+function getHistoryText(history = []) {
+    if (!Array.isArray(history)) {
+        return "";
+    }
+
+    return history
+        .filter((entry) => entry && entry.role === "user")
+        .slice(-8)
+        .map((entry) => entry.content || entry.text || "")
+        .join(" ");
+}
+
+function getSymptomMatches(normalizedText) {
+    const matched = new Set();
+
+    for (const [canonical, aliases] of Object.entries(medicalDataset.symptomAliases || {})) {
+        if (includesPhrase(normalizedText, canonical)) {
+            matched.add(canonical);
+        }
+
+        for (const alias of aliases || []) {
+            if (includesPhrase(normalizedText, alias)) {
+                matched.add(canonical);
+            }
+        }
+    }
+
+    return Array.from(matched);
+}
+
+function inferImageHintsFromFilename(image) {
+    if (!image || !image.name) {
+        return [];
+    }
+
+    const filename = normalizeText(image.name);
+    const imageKeywordMap = [
+        { keyword: "rash", hint: "rash" },
+        { keyword: "skin", hint: "rash" },
+        { keyword: "eye", hint: "red eye" },
+        { keyword: "throat", hint: "sore throat" },
+        { keyword: "tongue", hint: "sore throat" },
+        { keyword: "urine", hint: "burning urination" },
+        { keyword: "chest", hint: "chest pain" }
+    ];
+
+    return imageKeywordMap
+        .filter((entry) => includesPhrase(filename, entry.keyword))
+        .map((entry) => entry.hint);
+}
+
+async function analyzeImageWithOpenAI(userText, image) {
+    if (!image || !image.dataUrl || !process.env.OPENAI_API_KEY) {
+        return null;
+    }
+
+    if (!image.dataUrl.startsWith("data:image/")) {
+        return null;
+    }
+
+    try {
+        const response = await axios.post(
+            "https://api.openai.com/v1/chat/completions",
+            {
+                model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+                temperature: 0.1,
+                max_tokens: 250,
+                response_format: { type: "json_object" },
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "You are a medical triage vision helper. Do not diagnose. Return compact JSON with keys visibleFindings (array), symptomHints (array), and note (string)."
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "text",
+                                text: `Patient note: ${userText || "No text provided."}`
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: image.dataUrl,
+                                    detail: "low"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                timeout: 25000
+            }
+        );
+
+        const raw = response.data?.choices?.[0]?.message?.content;
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw);
+        return {
+            visibleFindings: Array.isArray(parsed.visibleFindings) ? parsed.visibleFindings : [],
+            symptomHints: Array.isArray(parsed.symptomHints) ? parsed.symptomHints : [],
+            note: parsed.note || "",
+            source: "openai"
+        };
+    } catch (error) {
+        return {
+            visibleFindings: [],
+            symptomHints: [],
+            note: "Image attached but external vision model was unavailable.",
+            source: "image-fallback"
+        };
+    }
+}
+
+function scoreCondition(condition, normalizedText, canonicalSymptoms) {
+    const directHits = (condition.symptoms || []).filter((symptom) => includesPhrase(normalizedText, symptom));
+
+    const aliasHits = canonicalSymptoms.filter((canonicalSymptom) =>
+        (condition.symptoms || []).some((symptom) => {
+            const normalizedSymptom = normalizeText(symptom);
+            return (
+                normalizedSymptom.includes(canonicalSymptom) ||
+                canonicalSymptom.includes(normalizedSymptom)
+            );
+        })
+    );
+
+    const redFlagHits = (condition.redFlags || []).filter((flag) => includesPhrase(normalizedText, flag));
+
+    let score = directHits.length * 5 + aliasHits.length * 3;
+    if (includesPhrase(normalizedText, condition.name)) {
+        score += 2;
+    }
+
+    if (score === 0) {
+        return null;
+    }
+
+    const baseConfidence = Math.round(
+        (directHits.length / Math.max((condition.symptoms || []).length, 1)) * 100
+    );
+
+    const confidence = Math.min(96, Math.max(18, baseConfidence + aliasHits.length * 8));
+
+    return {
+        ...condition,
+        confidence,
+        score,
+        evidenceSymptoms: uniqueBy([...directHits, ...aliasHits], (value) => value.toLowerCase()),
+        redFlagHits
+    };
+}
+
+function rankConditions(normalizedText, canonicalSymptoms) {
+    return (medicalDataset.conditions || [])
+        .map((condition) => scoreCondition(condition, normalizedText, canonicalSymptoms))
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score);
+}
+
+function buildTriage(normalizedText, bestMatch) {
+    const globalEmergencyHits = EMERGENCY_KEYWORDS.filter((keyword) =>
+        includesPhrase(normalizedText, keyword)
+    );
+
+    if (globalEmergencyHits.length) {
+        return {
+            level: "emergency",
+            urgent: true,
+            reason: `Red-flag symptoms detected: ${globalEmergencyHits.join(", ")}. Seek emergency care now.`
+        };
+    }
+
+    if (!bestMatch) {
+        return {
+            level: "routine",
+            urgent: false,
+            reason: "Insufficient symptom detail for strong triage. Provide more details."
+        };
+    }
+
+    if (bestMatch.redFlagHits.length || bestMatch.severity === "severe") {
+        return {
+            level: "urgent",
+            urgent: true,
+            reason:
+                "Symptoms may require same-day clinical evaluation. Seek in-person care if symptoms worsen."
+        };
+    }
+
+    if (bestMatch.severity === "moderate") {
+        return {
+            level: "soon",
+            urgent: false,
+            reason: "Monitor closely and consult a clinician within 24 hours if symptoms persist."
+        };
+    }
+
+    return {
+        level: "routine",
+        urgent: false,
+        reason: "Symptoms appear mild at this stage. Continue home care and monitor progress."
+    };
+}
+
+function collectRemedies(matches) {
+    const remedies = matches.flatMap((match) => match.homeRemedies || []);
+    return uniqueBy(remedies, (value) => value.toLowerCase()).slice(0, 7);
+}
+
+function collectDrugs(matches) {
+    const drugs = matches.flatMap((match) => [
+        ...(match.otcDrugs || []).map((drug) => ({ ...drug, type: "OTC" })),
+        ...(match.prescriptionDrugs || []).map((drug) => ({ ...drug, type: "Prescription" }))
+    ]);
+
+    return uniqueBy(drugs, (item) => `${item.name.toLowerCase()}-${item.type.toLowerCase()}`).slice(0, 8);
+}
+
+function buildFollowUpQuestions(bestMatch, normalizedText) {
+    if (!bestMatch) {
+        return [
+            "How long have these symptoms been present?",
+            "Do you have fever or breathing difficulty?",
+            "Have symptoms improved, worsened, or stayed stable over the last 24 hours?"
+        ];
+    }
+
+    const missingKeySymptoms = (bestMatch.symptoms || [])
+        .filter((symptom) => !includesPhrase(normalizedText, symptom))
+        .slice(0, 3);
+
+    const questionSet = missingKeySymptoms.map(
+        (symptom) => `Are you also experiencing ${symptom}?`
+    );
+
+    questionSet.push("How long have these symptoms been present?");
+
+    return uniqueBy(questionSet, (value) => value.toLowerCase()).slice(0, 4);
+}
+
+function buildReply({
+    matches,
+    remedies,
+    drugs,
+    triage,
+    imageInsights
+}) {
+    if (!matches.length) {
+        return [
+            "I could not confidently map your input to a condition yet.",
+            "Please share more symptom details such as duration, fever level, pain location, and any progression.",
+            "If your symptoms are severe or rapidly worsening, seek urgent medical care now."
+        ].join("\n");
+    }
+
+    const lines = [];
+    lines.push("Preliminary AI triage based on your symptom text and available dataset context:");
+
+    if (imageInsights && imageInsights.visibleFindings.length) {
+        lines.push(`Image cues considered: ${imageInsights.visibleFindings.join(", ")}.`);
+    }
+
+    lines.push("");
+    lines.push("Most likely conditions:");
+    matches.slice(0, 3).forEach((match, index) => {
+        lines.push(
+            `${index + 1}. ${match.name} (${match.confidence}% match, ${match.severity} severity)`
+        );
+    });
+
+    lines.push("");
+    lines.push("Home remedies:");
+    remedies.slice(0, 5).forEach((remedy, index) => {
+        lines.push(`${index + 1}. ${remedy}`);
+    });
+
+    lines.push("");
+    lines.push("Medicines to discuss with a clinician/pharmacist:");
+    drugs.slice(0, 5).forEach((drug, index) => {
+        lines.push(
+            `${index + 1}. ${drug.name} [${drug.type}] - ${drug.purpose}. Caution: ${drug.caution}`
+        );
+    });
+
+    lines.push("");
+    lines.push(`Triage level: ${triage.level.toUpperCase()} - ${triage.reason}`);
+    lines.push("This is not a confirmed diagnosis and does not replace a licensed medical professional.");
+
+    return lines.join("\n");
+}
+
+async function getDiagnosisFromMultimodalInput({ message = "", history = [], image = null }) {
+    const historyText = getHistoryText(history);
+    const inferredImageHints = inferImageHintsFromFilename(image);
+    const imageInsights = await analyzeImageWithOpenAI(message, image);
+
+    const combinedInput = [
+        historyText,
+        message,
+        ...(imageInsights?.symptomHints || []),
+        ...(imageInsights?.visibleFindings || []),
+        ...inferredImageHints
+    ]
+        .filter(Boolean)
+        .join(" ");
+
+    const normalizedText = normalizeText(combinedInput);
+    const canonicalSymptoms = getSymptomMatches(normalizedText);
+    const rankedConditions = rankConditions(normalizedText, canonicalSymptoms);
+    const topMatches = rankedConditions.slice(0, 3);
+
+    const triage = buildTriage(normalizedText, topMatches[0]);
+    const remedies = collectRemedies(topMatches);
+    const drugs = collectDrugs(topMatches);
+    const followUpQuestions = buildFollowUpQuestions(topMatches[0], normalizedText);
+
+    const reply = buildReply({
+        matches: topMatches,
+        remedies,
+        drugs,
+        triage,
+        imageInsights
+    });
+
+    return {
+        reply,
+        diagnosis: topMatches.map((match) => ({
+            name: match.name,
+            category: match.category,
+            confidence: match.confidence,
+            severity: match.severity,
+            description: match.description,
+            evidenceSymptoms: match.evidenceSymptoms,
+            redFlags: match.redFlags
+        })),
+        remedies,
+        drugs,
+        followUpQuestions,
+        triage,
+        imageInsights: imageInsights
+            ? {
+                source: imageInsights.source,
+                note: imageInsights.note,
+                visibleFindings: imageInsights.visibleFindings
+            }
+            : inferredImageHints.length
+              ? {
+                    source: "filename-hints",
+                    note: "Image hints inferred from file metadata only.",
+                    visibleFindings: inferredImageHints
+                }
+              : null,
+        dataset: {
+            name: medicalDataset.datasetName,
+            updatedOn: medicalDataset.lastUpdated
+        },
+        disclaimer:
+            "This output is educational triage support only, not a confirmed medical diagnosis or treatment prescription."
+    };
+}
+
+module.exports = {
+    getDiagnosisFromMultimodalInput
+};

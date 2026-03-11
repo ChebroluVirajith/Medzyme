@@ -1,0 +1,306 @@
+{
+  "datasetName": "Medzyme Clinical Knowledge Base v1",
+  "lastUpdated": "2026-03-11",
+  "symptomAliases": {
+    "fever": ["high temperature", "temperature", "chills", "pyrexia"],
+    "cough": ["dry cough", "wet cough", "persistent cough"],
+    "sore throat": ["throat pain", "scratchy throat"],
+    "headache": ["head pain", "migraine pain"],
+    "fatigue": ["tiredness", "exhaustion", "low energy"],
+    "nausea": ["queasy", "vomit feeling"],
+    "vomiting": ["throwing up", "emesis"],
+    "diarrhea": ["loose stool", "watery stool"],
+    "abdominal pain": ["stomach pain", "belly pain", "cramps"],
+    "shortness of breath": ["breathlessness", "trouble breathing", "wheezing"],
+    "chest pain": ["chest tightness", "pressure in chest"],
+    "runny nose": ["nasal discharge"],
+    "sneezing": ["repeated sneezing"],
+    "body ache": ["muscle pain", "body pain", "myalgia"],
+    "loss of smell": ["anosmia", "loss of taste"],
+    "burning urination": ["painful urination", "dysuria"],
+    "frequent urination": ["urinary frequency", "peeing often"],
+    "rash": ["skin rash", "red spots", "itchy skin"],
+    "itching": ["pruritus"],
+    "red eye": ["pink eye", "eye redness"],
+    "eye discharge": ["sticky eye discharge", "pus in eye"]
+  },
+  "conditions": [
+    {
+      "name": "Common Cold",
+      "category": "Respiratory",
+      "severity": "mild",
+      "description": "A common viral upper respiratory infection that usually resolves in a few days.",
+      "symptoms": ["runny nose", "sneezing", "sore throat", "cough", "nasal congestion", "mild fever", "fatigue"],
+      "homeRemedies": ["Increase fluid intake", "Rest adequately", "Use warm saline gargles", "Use steam inhalation for congestion"],
+      "otcDrugs": [
+        {
+          "name": "Paracetamol",
+          "purpose": "Reduces mild fever and throat discomfort",
+          "caution": "Avoid exceeding labeled daily dose"
+        },
+        {
+          "name": "Cetirizine",
+          "purpose": "Relieves sneezing and runny nose",
+          "caution": "May cause drowsiness"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Decongestant spray",
+          "purpose": "Short-term severe nasal blockage relief",
+          "caution": "Use only for a few days and under clinician guidance"
+        }
+      ],
+      "redFlags": ["shortness of breath", "chest pain", "fever lasting more than 3 days"]
+    },
+    {
+      "name": "Influenza",
+      "category": "Respiratory",
+      "severity": "moderate",
+      "description": "A viral respiratory illness with sudden onset fever, body aches, and fatigue.",
+      "symptoms": ["high fever", "chills", "dry cough", "body ache", "headache", "fatigue", "sore throat"],
+      "homeRemedies": ["Strict rest", "Hydration with oral fluids", "Warm soups", "Monitor temperature every 6-8 hours"],
+      "otcDrugs": [
+        {
+          "name": "Paracetamol",
+          "purpose": "Fever and pain relief",
+          "caution": "Avoid combining with other acetaminophen products"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Oseltamivir",
+          "purpose": "May shorten illness duration if started early",
+          "caution": "Prescription only"
+        }
+      ],
+      "redFlags": ["persistent breathing difficulty", "oxygen saturation dropping", "confusion"]
+    },
+    {
+      "name": "COVID-19",
+      "category": "Respiratory",
+      "severity": "moderate",
+      "description": "A viral infection that can affect respiratory and systemic health.",
+      "symptoms": ["fever", "dry cough", "fatigue", "loss of smell", "sore throat", "headache", "shortness of breath"],
+      "homeRemedies": ["Isolate to prevent spread", "Hydrate frequently", "Rest", "Track oxygen saturation if possible"],
+      "otcDrugs": [
+        {
+          "name": "Paracetamol",
+          "purpose": "Relieves fever and body pain",
+          "caution": "Use according to package instructions"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Antiviral therapy",
+          "purpose": "For high-risk patients based on clinician decision",
+          "caution": "Requires medical assessment"
+        }
+      ],
+      "redFlags": ["chest pain", "persistent shortness of breath", "low oxygen", "confusion"]
+    },
+    {
+      "name": "Acute Gastroenteritis",
+      "category": "Gastrointestinal",
+      "severity": "moderate",
+      "description": "Inflammation of the gut causing vomiting, diarrhea, and abdominal discomfort.",
+      "symptoms": ["nausea", "vomiting", "diarrhea", "abdominal pain", "mild fever", "weakness", "dehydration"],
+      "homeRemedies": ["Oral rehydration salts", "Small frequent clear fluids", "Bland diet after vomiting settles", "Avoid oily and spicy food"],
+      "otcDrugs": [
+        {
+          "name": "ORS sachets",
+          "purpose": "Prevents dehydration",
+          "caution": "Use prepared solution within recommended time"
+        },
+        {
+          "name": "Probiotic capsules",
+          "purpose": "Supports gut recovery",
+          "caution": "Use as directed"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Ondansetron",
+          "purpose": "Controls persistent vomiting",
+          "caution": "Prescription use"
+        }
+      ],
+      "redFlags": ["blood in stool", "severe dehydration", "inability to keep liquids down", "high fever"]
+    },
+    {
+      "name": "Migraine",
+      "category": "Neurological",
+      "severity": "moderate",
+      "description": "A recurring headache disorder often accompanied by nausea and light sensitivity.",
+      "symptoms": ["severe headache", "nausea", "vomiting", "light sensitivity", "sound sensitivity", "visual aura"],
+      "homeRemedies": ["Rest in a dark quiet room", "Hydrate", "Use cold compress on forehead", "Avoid known triggers"],
+      "otcDrugs": [
+        {
+          "name": "Ibuprofen",
+          "purpose": "Relieves migraine pain",
+          "caution": "Avoid if you have ulcers or kidney disease"
+        },
+        {
+          "name": "Paracetamol",
+          "purpose": "Mild to moderate pain relief",
+          "caution": "Follow daily dose limits"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Triptans",
+          "purpose": "Targeted migraine treatment",
+          "caution": "Prescription only and not for everyone"
+        }
+      ],
+      "redFlags": ["sudden worst headache of life", "new neurological deficit", "headache after head injury"]
+    },
+    {
+      "name": "Allergic Rhinitis",
+      "category": "Allergy",
+      "severity": "mild",
+      "description": "Allergic inflammation of the nasal passages due to allergens.",
+      "symptoms": ["sneezing", "runny nose", "itching", "itchy eyes", "nasal congestion", "postnasal drip"],
+      "homeRemedies": ["Avoid known allergens", "Use saline nasal rinse", "Use air filters indoors", "Keep windows closed during high pollen"],
+      "otcDrugs": [
+        {
+          "name": "Loratadine",
+          "purpose": "Reduces allergic sneezing and runny nose",
+          "caution": "Use once daily unless directed otherwise"
+        },
+        {
+          "name": "Fluticasone nasal spray",
+          "purpose": "Reduces nasal inflammation",
+          "caution": "Needs regular use for best effect"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Montelukast",
+          "purpose": "Adjunct treatment for persistent allergy symptoms",
+          "caution": "Clinician supervision required"
+        }
+      ],
+      "redFlags": ["breathing trouble", "facial swelling", "wheezing"]
+    },
+    {
+      "name": "Urinary Tract Infection",
+      "category": "Urinary",
+      "severity": "moderate",
+      "description": "A bacterial infection of the urinary tract causing painful urination and urgency.",
+      "symptoms": ["burning urination", "frequent urination", "lower abdominal pain", "cloudy urine", "mild fever"],
+      "homeRemedies": ["Drink extra water", "Do not hold urine", "Maintain genital hygiene", "Avoid irritant intimate products"],
+      "otcDrugs": [
+        {
+          "name": "Urinary alkalizer",
+          "purpose": "Relieves urinary burning",
+          "caution": "Symptom relief only, not a cure"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Nitrofurantoin",
+          "purpose": "Common first-line antibiotic for uncomplicated UTI",
+          "caution": "Prescription and proper diagnosis required"
+        }
+      ],
+      "redFlags": ["flank pain", "high fever", "vomiting", "pregnancy with urinary symptoms"]
+    },
+    {
+      "name": "Contact Dermatitis",
+      "category": "Dermatology",
+      "severity": "mild",
+      "description": "Skin inflammation caused by irritants or allergens.",
+      "symptoms": ["rash", "itching", "redness", "dry skin", "swelling", "burning sensation"],
+      "homeRemedies": ["Avoid the suspected trigger", "Use fragrance-free moisturizer", "Cool compress on affected skin", "Do not scratch"],
+      "otcDrugs": [
+        {
+          "name": "Hydrocortisone 1% cream",
+          "purpose": "Reduces mild inflammation and itching",
+          "caution": "Short-term external use only"
+        },
+        {
+          "name": "Calamine lotion",
+          "purpose": "Soothes itching",
+          "caution": "Avoid application on broken skin"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Topical corticosteroid (moderate potency)",
+          "purpose": "For persistent or widespread dermatitis",
+          "caution": "Prescription and duration control required"
+        }
+      ],
+      "redFlags": ["rapidly spreading rash", "fever with rash", "facial swelling", "blistering"]
+    },
+    {
+      "name": "Bacterial Conjunctivitis",
+      "category": "Ophthalmology",
+      "severity": "mild",
+      "description": "An eye infection that causes redness and discharge.",
+      "symptoms": ["red eye", "eye discharge", "itching", "gritty sensation", "eyelid swelling"],
+      "homeRemedies": ["Clean eye discharge gently", "Avoid touching eyes", "Do not share towels", "Pause contact lens use"],
+      "otcDrugs": [
+        {
+          "name": "Lubricant eye drops",
+          "purpose": "Comfort support",
+          "caution": "Use sterile single-user bottle"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Antibiotic eye drops",
+          "purpose": "Treat bacterial infection",
+          "caution": "Requires clinician evaluation"
+        }
+      ],
+      "redFlags": ["vision changes", "severe eye pain", "light sensitivity", "contact lens wearer with severe redness"]
+    },
+    {
+      "name": "Asthma Flare",
+      "category": "Respiratory",
+      "severity": "severe",
+      "description": "Worsening airway inflammation causing breathing difficulty and chest tightness.",
+      "symptoms": ["wheezing", "shortness of breath", "chest tightness", "cough", "nighttime cough"],
+      "homeRemedies": ["Use prescribed rescue inhaler promptly", "Sit upright and stay calm", "Avoid smoke and triggers", "Monitor breathing response"],
+      "otcDrugs": [],
+      "prescriptionDrugs": [
+        {
+          "name": "Short-acting bronchodilator inhaler",
+          "purpose": "Rapid symptom relief",
+          "caution": "Use according to asthma action plan"
+        },
+        {
+          "name": "Inhaled corticosteroid",
+          "purpose": "Controls airway inflammation",
+          "caution": "Regular prescribed use required"
+        }
+      ],
+      "redFlags": ["difficulty speaking full sentences", "blue lips", "severe breathlessness", "poor response to rescue inhaler"]
+    },
+    {
+      "name": "Pneumonia",
+      "category": "Respiratory",
+      "severity": "severe",
+      "description": "Infection of lung tissue that can become serious without timely treatment.",
+      "symptoms": ["fever", "cough", "chest pain", "shortness of breath", "fatigue", "chills"],
+      "homeRemedies": ["Rest", "Hydration", "Track breathing status", "Seek medical assessment promptly"],
+      "otcDrugs": [
+        {
+          "name": "Paracetamol",
+          "purpose": "Fever support while awaiting care",
+          "caution": "Supportive only; does not treat infection source"
+        }
+      ],
+      "prescriptionDrugs": [
+        {
+          "name": "Antibiotics or antivirals",
+          "purpose": "Definitive treatment based on cause",
+          "caution": "Prescription required after clinical evaluation"
+        }
+      ],
+      "redFlags": ["low oxygen", "confusion", "fast breathing", "persistent chest pain"]
+    }
+  ]
+}
