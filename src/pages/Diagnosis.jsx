@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import BottomNav from '../components/BottomNav';
 import '../styles/Diagnosis.css';
-import { getLocalDiagnosisResponse } from '../services/localDiagnosis';
+import { getLocalDiagnosisResponse } from '../services/localDiagnosis.js';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const DIAGNOSIS_API_URL = API_BASE_URL
