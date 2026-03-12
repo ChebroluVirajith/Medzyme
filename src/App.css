@@ -4,10 +4,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@1,600&display=swap');
 
 :root {
-    --primary: #4F46E5;
-    --primary-dark: #4338CA;
-    --secondary: #818CF8;
-    --primary-light: #818CF8;
+    --primary: #100c5f;
+    --primary-dark: #0c027a;
+    --secondary: #122e7b;
+    --primary-light: #0f1678;
     --primary-lighter: #C7D2FE;
     --success: #34D399;
     --warning: #FBBF24;

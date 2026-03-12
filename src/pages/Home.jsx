@@ -7,77 +7,77 @@ import BottomNav from '../components/BottomNav';
 const HeartbeatSVG = () => (
     <svg className="graphic-svg heartbeat" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 50 L40 50 L50 30 L60 70 L80 10 L100 80 L120 40 L190 50" 
-              stroke="#667eea" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="50" cy="30" r="3" fill="#667eea"/>
-        <circle cx="80" cy="10" r="3" fill="#764ba2"/>
-        <circle cx="100" cy="80" r="3" fill="#667eea"/>
+              stroke="#100c5f" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="50" cy="30" r="3" fill="#100c5f"/>
+        <circle cx="80" cy="10" r="3" fill="#100c5f"/>
+        <circle cx="100" cy="80" r="3" fill="#100c5f"/>
     </svg>
 );
 
 const MedicineBottleSVG = () => (
     <svg className="graphic-svg medicine-bottle" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
         <path d="M35 20 L35 15 Q35 10 40 10 L60 10 Q65 10 65 15 L65 20" 
-              fill="none" stroke="#667eea" strokeWidth="2"/>
-        <rect x="35" y="20" width="30" height="80" rx="5" fill="none" stroke="#667eea" strokeWidth="2"/>
-        <rect x="35" y="50" width="30" height="30" fill="#667eea" opacity="0.4"/>
-        <circle cx="50" cy="75" r="3" fill="#667eea"/>
-        <path d="M25 100 L75 100" stroke="#667eea" strokeWidth="2"/>
-        <rect x="35" y="100" width="30" height="15" rx="2" fill="none" stroke="#667eea" strokeWidth="2"/>
+              fill="none" stroke="#100c5f" strokeWidth="2"/>
+        <rect x="35" y="20" width="30" height="80" rx="5" fill="none" stroke="#100c5f" strokeWidth="2"/>
+        <rect x="35" y="50" width="30" height="30" fill="#100c5f" opacity="0.4"/>
+        <circle cx="50" cy="75" r="3" fill="#100c5f"/>
+        <path d="M25 100 L75 100" stroke="#100c5f" strokeWidth="2"/>
+        <rect x="35" y="100" width="30" height="15" rx="2" fill="none" stroke="#100c5f" strokeWidth="2"/>
     </svg>
 );
 
 const ShieldSVG = () => (
     <svg className="graphic-svg shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
         <path d="M50 10 L80 25 L80 60 Q80 90 50 110 Q20 90 20 60 L20 25 Z" 
-              fill="none" stroke="#667eea" strokeWidth="2.5"/>
-        <path d="M40 60 L48 68 L60 50" fill="none" stroke="#667eea" strokeWidth="2.5" 
+              fill="none" stroke="#100c5f" strokeWidth="2.5"/>
+        <path d="M40 60 L48 68 L60 50" fill="none" stroke="#100c5f" strokeWidth="2.5" 
               strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
 );
 
 const VideoCamSVG = () => (
     <svg className="graphic-svg video-cam" viewBox="0 0 150 100" xmlns="http://www.w3.org/2000/svg">
-        <rect x="10" y="20" width="80" height="60" rx="5" fill="none" stroke="#667eea" strokeWidth="2"/>
-        <circle cx="50" cy="50" r="15" fill="none" stroke="#667eea" strokeWidth="2"/>
-        <polygon points="140,30 140,70 110,50" fill="#667eea"/>
+        <rect x="10" y="20" width="80" height="60" rx="5" fill="none" stroke="#100c5f" strokeWidth="2"/>
+        <circle cx="50" cy="50" r="15" fill="none" stroke="#100c5f" strokeWidth="2"/>
+        <polygon points="140,30 140,70 110,50" fill="#100c5f"/>
     </svg>
 );
 
 const StethoscopeSVG = () => (
     <svg className="graphic-svg stethoscope" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
         <path d="M60 10 Q40 10 35 25 Q30 35 35 45 L30 60 Q30 70 40 75 L50 80" 
-              fill="none" stroke="#667eea" strokeWidth="2.5" strokeLinecap="round"/>
+              fill="none" stroke="#100c5f" strokeWidth="2.5" strokeLinecap="round"/>
         <path d="M60 10 Q80 10 85 25 Q90 35 85 45 L90 60 Q90 70 80 75 L70 80" 
-              fill="none" stroke="#667eea" strokeWidth="2.5" strokeLinecap="round"/>
-        <circle cx="50" cy="95" r="8" fill="none" stroke="#667eea" strokeWidth="2.5"/>
-        <circle cx="70" cy="95" r="8" fill="none" stroke="#667eea" strokeWidth="2.5"/>
-        <line x1="60" y1="80" x2="60" y2="90" stroke="#667eea" strokeWidth="2"/>
+              fill="none" stroke="#100c5f" strokeWidth="2.5" strokeLinecap="round"/>
+        <circle cx="50" cy="95" r="8" fill="none" stroke="#100c5f" strokeWidth="2.5"/>
+        <circle cx="70" cy="95" r="8" fill="none" stroke="#100c5f" strokeWidth="2.5"/>
+        <line x1="60" y1="80" x2="60" y2="90" stroke="#100c5f" strokeWidth="2"/>
     </svg>
 );
 
 const ClockSVG = () => (
     <svg className="graphic-svg clock" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="60" cy="60" r="50" fill="none" stroke="#667eea" strokeWidth="2.5"/>
-        <circle cx="60" cy="60" r="4" fill="#667eea"/>
-        <line x1="60" y1="60" x2="60" y2="25" stroke="#667eea" strokeWidth="2.5" strokeLinecap="round"/>
-        <line x1="60" y1="60" x2="85" y2="60" stroke="#667eea" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="60" cy="15" r="3" fill="#667eea"/>
-        <circle cx="60" cy="105" r="3" fill="#667eea"/>
-        <circle cx="15" cy="60" r="3" fill="#667eea"/>
-        <circle cx="105" cy="60" r="3" fill="#667eea"/>
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#100c5f" strokeWidth="2.5"/>
+        <circle cx="60" cy="60" r="4" fill="#100c5f"/>
+        <line x1="60" y1="60" x2="60" y2="25" stroke="#100c5f" strokeWidth="2.5" strokeLinecap="round"/>
+        <line x1="60" y1="60" x2="85" y2="60" stroke="#100c5f" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="60" cy="15" r="3" fill="#100c5f"/>
+        <circle cx="60" cy="105" r="3" fill="#100c5f"/>
+        <circle cx="15" cy="60" r="3" fill="#100c5f"/>
+        <circle cx="105" cy="60" r="3" fill="#100c5f"/>
     </svg>
 );
 
 const ChartSVG = () => (
     <svg className="graphic-svg chart" viewBox="0 0 150 120" xmlns="http://www.w3.org/2000/svg">
-        <line x1="20" y1="100" x2="130" y2="100" stroke="#667eea" strokeWidth="2"/>
-        <line x1="20" y1="100" x2="20" y2="20" stroke="#667eea" strokeWidth="2"/>
-        <rect x="40" y="70" width="15" height="30" fill="#667eea" opacity="0.6"/>
-        <rect x="65" y="45" width="15" height="55" fill="#667eea" opacity="0.8"/>
-        <rect x="90" y="30" width="15" height="70" fill="#667eea"/>
-        <circle cx="48" cy="70" r="3" fill="#764ba2"/>
-        <circle cx="73" cy="45" r="3" fill="#764ba2"/>
-        <circle cx="98" cy="30" r="3" fill="#764ba2"/>
+        <line x1="20" y1="100" x2="130" y2="100" stroke="#100c5f" strokeWidth="2"/>
+        <line x1="20" y1="100" x2="20" y2="20" stroke="#100c5f" strokeWidth="2"/>
+        <rect x="40" y="70" width="15" height="30" fill="#100c5f" opacity="0.6"/>
+        <rect x="65" y="45" width="15" height="55" fill="#100c5f" opacity="0.8"/>
+        <rect x="90" y="30" width="15" height="70" fill="#100c5f"/>
+        <circle cx="48" cy="70" r="3" fill="#100c5f"/>
+        <circle cx="73" cy="45" r="3" fill="#100c5f"/>
+        <circle cx="98" cy="30" r="3" fill="#100c5f"/>
     </svg>
 );
 

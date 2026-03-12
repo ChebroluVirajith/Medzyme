@@ -5,7 +5,7 @@ import {
     doc, updateDoc, query, where
 } from 'firebase/firestore';
 import {
-    ref, uploadBytesResumable, getDownloadURL, deleteObject
+    ref, uploadBytes, getDownloadURL, deleteObject
 } from 'firebase/storage';
 import BottomNav from '../components/BottomNav';
 
@@ -46,16 +46,37 @@ export default function MedicineTracker() {
                 
                 if (stored) {
                     const parsedUser = JSON.parse(stored);
+                    if (!parsedUser.uid) {
+                        console.log('❌ User found but missing uid. Clearing broken session.');
+                        localStorage.removeItem('user');
+                        setUser(null);
+                        setLoading(false);
+                        return;
+                    }
                     console.log('✅ User found:', parsedUser.uid);
                     setUser(parsedUser);
-                    fetchMedicines(parsedUser.uid);
-                    fetchRecords(parsedUser.uid);
+                    
+                    // Set a fallback timer in case Firebase gets completely stuck on network
+                    const fallbackTimer = setTimeout(() => {
+                        console.warn('Firebase query timeout. Force clearing loader.');
+                        setLoading(false);
+                    }, 5000);
+
+                    Promise.all([
+                        fetchMedicines(parsedUser.uid),
+                        fetchRecords(parsedUser.uid)
+                    ]).finally(() => {
+                        clearTimeout(fallbackTimer);
+                        setLoading(false);
+                    });
+                    
                 } else {
                     console.log('❌ No user in localStorage');
                     setLoading(false);
                 }
             } catch (error) {
                 console.error('❌ Error initializing user:', error);
+                localStorage.removeItem('user');
                 setLoading(false);
             }
         };
@@ -66,104 +87,172 @@ export default function MedicineTracker() {
     }, []);
 
     const fetchMedicines = async (uid) => {
-        setLoading(true);
         try {
+            // Load local cache first so UI feels instantaneous
+            const cachedMeds = localStorage.getItem(`medicines_${uid}`);
+            if (cachedMeds) setMedicines(JSON.parse(cachedMeds));
+
             const q = query(collection(db, 'medicines'), where('uid', '==', uid));
-            const snapshot = await getDocs(q);
-            setMedicines(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            // Setting a 4.5 second threshold for fetching medicines as a safeguard
+            const snapshot = await Promise.race([
+                getDocs(q),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout fetching medicines")), 4500))
+            ]);
+            const serverMeds = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            setMedicines(serverMeds);
+            localStorage.setItem(`medicines_${uid}`, JSON.stringify(serverMeds));
         } catch (err) {
-            console.error('Error fetching medicines:', err);
+            console.warn('Database offline, using local medicines cache.', err.message);
         }
-        setLoading(false);
     };
 
     const fetchRecords = async (uid) => {
         try {
+            // Load local cache first so UI feels instantaneous
+            const cachedRecords = localStorage.getItem(`records_${uid}`);
+            if (cachedRecords) setRecords(JSON.parse(cachedRecords));
+
             const q = query(collection(db, 'healthRecords'), where('uid', '==', uid));
-            const snapshot = await getDocs(q);
-            setRecords(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const snapshot = await Promise.race([
+                getDocs(q),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout fetching records")), 4500))
+            ]);
+            const serverRecs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            setRecords(serverRecs);
+            localStorage.setItem(`records_${uid}`, JSON.stringify(serverRecs));
         } catch (err) {
-            console.error('Error fetching records:', err);
+            console.warn('Database offline, using local records cache.', err.message);
         }
     };
 
-    // Upload file to Firebase Storage
-    const uploadFile = (file, uid) => {
-        return new Promise((resolve, reject) => {
-            try {
-                // Validate inputs
-                if (!file) {
-                    reject(new Error('No file provided'));
-                    return;
-                }
-                if (!uid) {
-                    reject(new Error('User ID is required for upload'));
-                    return;
-                }
+    // Auto-save any local state changes to local storage so they don't disappear on refresh when offline
+    useEffect(() => {
+        if (user && user.uid && medicines.length > 0) {
+            localStorage.setItem(`medicines_${user.uid}`, JSON.stringify(medicines));
+        }
+    }, [medicines, user]);
 
-                // Validate file size (10MB max)
-                const MAX_FILE_SIZE = 10 * 1024 * 1024;
-                if (file.size > MAX_FILE_SIZE) {
-                    reject(new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB (max 10MB)`));
-                    return;
-                }
+    useEffect(() => {
+        if (user && user.uid && records.length > 0) {
+            localStorage.setItem(`records_${user.uid}`, JSON.stringify(records));
+        }
+    }, [records, user]);
 
-                console.log('📤 Starting file upload:', file.name);
+    // Background job to check for missed medicines and send email alerts
+    useEffect(() => {
+        const checkInterval = setInterval(() => {
+            if (!user || !user.email) return;
+            
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
 
-                const timestamp = Date.now();
-                const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 50);
-                const filePath = `healthRecords/${uid}/${timestamp}_${cleanName}`;
+            medicines.forEach(async (med) => {
+                // Ignore if already taken, lacks a time string, or we've already emailed them about it
+                if (med.taken || med.alertSent || !med.time) return;
 
-                console.log('📍 Upload path:', filePath);
+                try {
+                    // Try to parse strings like "08:00 AM", "8 PM", "14:30"
+                    const timeMatch = med.time.match(/(\d+):?(\d+)?\s*(AM|PM)?/i);
+                    if (!timeMatch) return;
 
-                const storageRef = ref(storage, filePath);
+                    let medHour = parseInt(timeMatch[1], 10);
+                    const medMin = parseInt(timeMatch[2] || '0', 10);
+                    const ampm = timeMatch[3];
 
-                const uploadTask = uploadBytesResumable(storageRef, file, {
-                    contentType: file.type || 'application/octet-stream',
-                });
+                    if (ampm) {
+                        if (ampm.toUpperCase() === 'PM' && medHour < 12) medHour += 12;
+                        if (ampm.toUpperCase() === 'AM' && medHour === 12) medHour = 0;
+                    }
 
-                uploadTask.on(
-                    'state_changed',
-                    (snapshot) => {
-                        const progress = Math.round(
-                            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                        );
-                        console.log('⏳ Upload progress:', progress + '%');
-                        setUploadProgress(progress);
-                    },
-                    (error) => {
-                        console.error('❌ Upload error:', error.code, error.message);
+                    // Check if current time has passed the scheduled medicine time
+                    const isTimePassed = (currentHours > medHour) || (currentHours === medHour && currentMinutes >= medMin);
+
+                    if (isTimePassed) {
+                        console.log(`⏲️ Sending missed medication email for: ${med.name}`);
                         
-                        let userMsg = 'Upload failed: ';
-                        if (error.code === 'storage/unauthorized') {
-                            userMsg += 'Not authorized. Check Firebase security rules.';
-                        } else if (error.code === 'storage/unknown') {
-                            userMsg += 'Network error. Check your connection.';
-                        } else if (error.code === 'storage/unauthenticated') {
-                            userMsg += 'User not authenticated.';
-                        } else {
-                            userMsg += error.message;
-                        }
-                        
-                        reject(new Error(userMsg));
-                    },
-                    async () => {
+                        // Optimistically mark as alerted to prevent spam loops
+                        setMedicines(prev => prev.map(m => m.id === med.id ? { ...m, alertSent: true } : m));
+
+                        // Hit our new backend email endpoint
                         try {
-                            console.log('✅ Upload complete, getting download URL...');
-                            const downloadURL = await getDownloadURL(storageRef);
-                            console.log('✅ Download URL received');
-                            resolve({ downloadURL, filePath });
-                        } catch (urlErr) {
-                            console.error('❌ Failed to get download URL:', urlErr);
-                            reject(new Error('Upload succeeded but could not get download link'));
+                            await fetch('http://localhost:5000/api/notify', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    email: user.email,
+                                    name: user.name,
+                                    medicine: med.name,
+                                    time: med.time
+                                })
+                            });
+                            console.log(`✅ Email sent successfully for ${med.name}`);
+                        } catch (apiErr) {
+                            console.error("❌ Failed to contact backend for email:", apiErr);
                         }
                     }
-                );
-            } catch (err) {
-                console.error('❌ Upload error:', err);
-                reject(err);
+                } catch (e) {
+                    console.error("Error parsing medicine time:", e);
+                }
+            });
+        }, 10000); // Check every 10 seconds for demo purposes (usually 60000 / 1 minute)
+        
+        return () => clearInterval(checkInterval);
+    }, [medicines, user]);
+
+    // Upload file to Firebase Storage
+    const uploadFile = async (file, uid) => {
+        // Validate inputs
+        if (!file) throw new Error('No file provided');
+        if (!uid) throw new Error('User ID is required for upload');
+
+        // Validate file size (10MB max)
+        const MAX_FILE_SIZE = 10 * 1024 * 1024;
+        if (file.size > MAX_FILE_SIZE) {
+            throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB (max 10MB)`);
+        }
+
+        console.log('📤 Starting file upload:', file.name);
+
+        const timestamp = Date.now();
+        const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 50);
+        const filePath = `healthRecords/${uid}/${timestamp}_${cleanName}`;
+
+        console.log('📍 Upload path:', filePath);
+
+        const storageRef = ref(storage, filePath);
+
+        try {
+            // Fake progress to assure user something is happening
+            setUploadProgress(30);
+            
+            // Upload the actual file directly
+            const snapshot = await uploadBytes(storageRef, file, {
+                contentType: file.type || 'application/octet-stream',
+            });
+            
+            setUploadProgress(70);
+            console.log('✅ Upload physically complete, fetching download URL...');
+            
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            console.log('✅ Download URL successfully retrieved.');
+            
+            setUploadProgress(100);
+            return { downloadURL, filePath };
+        } catch (err) {
+            console.error('❌ Upload error:', err);
+            let userMsg = 'Upload failed: ';
+            if (err.code === 'storage/unauthorized') {
+                userMsg += 'Not authorized. Check Firebase security rules for Storage. Did you make them public?';
+            } else if (err.code === 'storage/unknown') {
+                userMsg += 'Network error. Check your connection.';
+            } else {
+                userMsg += err.message;
             }
-        });
+            throw new Error(userMsg);
+        }
     };
 
     const addMedicine = async () => {
@@ -171,65 +260,89 @@ export default function MedicineTracker() {
             alert('Please enter a medicine name');
             return;
         }
-        if (!user || !user.uid) {
-            alert('User not authenticated. Please log in again.');
-            return;
-        }
 
-        try {
-            const docRef = await addDoc(collection(db, 'medicines'), {
-                ...newMedicine,
-                taken: false,
-                uid: user.uid,
-                createdAt: new Date().toISOString(),
-            });
-            setMedicines([...medicines, { id: docRef.id, ...newMedicine, taken: false, uid: user.uid }]);
-            setNewMedicine({ name: '', dosage: '', time: '' });
-            setShowMedicineModal(false);
-        } catch (err) {
-            console.error('Error adding medicine:', err);
-            alert('Error adding medicine: ' + err.message);
+        const medData = {
+            id: Date.now().toString(), // Create a local ID as a fallback immediately
+            ...newMedicine,
+            taken: false,
+            alertSent: false, // Make sure new medicines default to false so they can trigger future alerts
+            uid: user?.uid || 'offline',
+            createdAt: new Date().toISOString(),
+        };
+
+        // OPTIMISTIC UPDATE: Update UI instantly, skipping the database wait
+        setMedicines(prev => [...prev, medData]);
+        setNewMedicine({ name: '', dosage: '', time: '' });
+        setShowMedicineModal(false);
+
+        // Try silently saving to the database in background
+        if (user && user.uid) {
+            try {
+                // Remove ID so firestore can auto-generate a true one
+                const { id, ...saveData } = medData;
+                const docRef = await addDoc(collection(db, 'medicines'), saveData);
+                
+                // Update our local UI ID with the real database ID
+                setMedicines(prev => prev.map(m => m.id === medData.id ? { ...m, id: docRef.id } : m));
+            } catch (err) {
+                console.warn('Database unreachable. Medicine saved locally.', err);
+            }
         }
     };
 
     const toggleTaken = async (medicineId, currentStatus) => {
+        // Optimistic UI toggle immediately
+        setMedicines(medicines.map(med =>
+            med.id === medicineId ? { ...med, taken: !currentStatus } : med
+        ));
+
+        // Attempt silent DB update
         try {
-            const medicineRef = doc(db, 'medicines', medicineId);
-            await updateDoc(medicineRef, { taken: !currentStatus });
-            setMedicines(medicines.map(med =>
-                med.id === medicineId ? { ...med, taken: !currentStatus } : med
-            ));
+            // Only update DB if the ID is a real string and not a Date.now number we locally generated
+            if (typeof medicineId === 'string' && medicineId.length > 15) {
+                const medicineRef = doc(db, 'medicines', medicineId);
+                await updateDoc(medicineRef, { taken: !currentStatus });
+            }
         } catch (err) {
-            console.error('Error updating medicine:', err);
+            console.warn('Database unreachable. Status updated locally.', err);
         }
     };
 
     const deleteMedicine = async (medicineId) => {
         if (window.confirm('Delete this medicine?')) {
+            // Optimistic deletion
+            setMedicines(medicines.filter(med => med.id !== medicineId));
+
             try {
-                await deleteDoc(doc(db, 'medicines', medicineId));
-                setMedicines(medicines.filter(med => med.id !== medicineId));
+                if (typeof medicineId === 'string' && medicineId.length > 15) {
+                    await deleteDoc(doc(db, 'medicines', medicineId));
+                }
             } catch (err) {
-                console.error('Error deleting medicine:', err);
+                console.warn('Database unreachable. Deleted locally.', err);
             }
         }
     };
 
     const deleteRecord = async (recordId, filePath) => {
         if (window.confirm('Delete this record?')) {
+            // Optimistic deletion instantly updates screen
+            setRecords(records.filter(rec => rec.id !== recordId));
+
             try {
                 if (filePath) {
                     try {
                         const fileRef = ref(storage, filePath);
                         await deleteObject(fileRef);
                     } catch (storageErr) {
-                        console.warn('Could not delete file:', storageErr);
+                        console.warn('Could not delete file from storage:', storageErr);
                     }
                 }
-                await deleteDoc(doc(db, 'healthRecords', recordId));
-                setRecords(records.filter(rec => rec.id !== recordId));
+                
+                if (typeof recordId === 'string' && recordId.length > 15) {
+                    await deleteDoc(doc(db, 'healthRecords', recordId));
+                }
             } catch (err) {
-                console.error('Error deleting record:', err);
+                console.warn('Database unreachable. Deleted locally.', err);
             }
         }
     };
@@ -268,9 +381,8 @@ export default function MedicineTracker() {
                     console.log('✅ File uploaded successfully');
                 } catch (uploadErr) {
                     console.error('❌ File upload failed:', uploadErr);
-                    setUploadError(uploadErr.message);
                     const proceed = window.confirm(
-                        'File upload failed: ' + uploadErr.message + '\n\nSave record without file?'
+                        'File upload failed: ' + uploadErr.message + '\n\nSave record locally without file attached?'
                     );
                     if (!proceed) {
                         setUploading(false);
@@ -279,34 +391,42 @@ export default function MedicineTracker() {
                 }
             }
 
-            // FIXED: Ensure uid is not undefined
             const recordData = {
+                id: Date.now().toString(), // local fallback ID
                 type: newRecord.type,
                 date: newRecord.date,
                 doctor: newRecord.doctor,
                 notes: newRecord.notes,
                 ...fileData,
-                uid: user.uid,  // ✅ Explicitly ensure this is set
+                uid: user.uid,
                 createdAt: new Date().toISOString(),
             };
 
-            // Validate before saving
-            if (!recordData.uid) {
-                throw new Error('User ID is undefined - cannot save record');
-            }
-
-            console.log('💾 Saving record with UID:', recordData.uid);
-            const docRef = await addDoc(collection(db, 'healthRecords'), recordData);
-            console.log('✅ Record saved:', docRef.id);
-
-            setRecords(prev => [...prev, { id: docRef.id, ...recordData }]);
+            // OPTIMISTIC UPDATE: Save to UI immediately without waiting for database!
+            setRecords(prev => [...prev, recordData]);
+            
+            // Clean up UI instantly
             setNewRecord({ type: '', date: '', doctor: '', notes: '', fileName: '', fileUrl: '', fileType: '', filePath: '' });
             setSelectedFile(null);
             setUploadProgress(0);
             setUploadError(null);
             setUploading(false);
             setShowRecordModal(false);
-            alert('✅ Record saved successfully!');
+
+            // Try silently saving to database in the background
+            try {
+                const { id, ...saveData } = recordData;
+                const docRef = await Promise.race([
+                    addDoc(collection(db, 'healthRecords'), saveData),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase timeout block')), 5000))
+                ]);
+                
+                // Replace local ID with DB ID when/if done
+                setRecords(prev => prev.map(r => r.id === recordData.id ? { ...r, id: docRef.id } : r));
+            } catch (err) {
+                console.warn('Database unreachable. Record saved locally.', err);
+                // Optionally let them know it saved offline
+            }
 
         } catch (err) {
             console.error('❌ Error saving record:', err);

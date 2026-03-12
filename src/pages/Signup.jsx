@@ -11,6 +11,7 @@ export default function Signup() {
             
             // Save user info to localStorage
             localStorage.setItem('user', JSON.stringify({
+                uid: decoded.sub, // Using Google's 'sub' subject field as the unique uid
                 name: decoded.name,
                 email: decoded.email,
                 picture: decoded.picture,

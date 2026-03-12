@@ -10,7 +10,7 @@
 }
 
 .diagnosis-chat-header {
-    background: linear-gradient(120deg, #0f766e 0%, #0ea5a4 45%, #2563eb 100%);
+    background: linear-gradient(120deg,#100c5f 0%);
     color: #ffffff;
     padding: 1.25rem 1rem;
     box-shadow: 0 6px 18px rgba(15, 118, 110, 0.25);
@@ -208,7 +208,7 @@
 }
 
 .diagnosis-action-btn.primary {
-    background: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #100c5f 0%);
     color: #ffffff;
 }
 

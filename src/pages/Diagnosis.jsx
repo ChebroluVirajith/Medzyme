@@ -90,6 +90,7 @@ function AssistantAnalysis({ payload }) {
     const diagnosis = payload?.diagnosis || [];
     const remedies = payload?.remedies || [];
     const drugs = payload?.drugs || [];
+    const diet = payload?.diet || [];
 
     return (
         <div className="assistant-analysis">
@@ -112,6 +113,17 @@ function AssistantAnalysis({ payload }) {
                     <ul className="analysis-list">
                         {remedies.map((remedy) => (
                             <li key={remedy}>{remedy}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {diet.length > 0 && (
+                <div className="analysis-block">
+                    <h4>Diet & Nutrition</h4>
+                    <ul className="analysis-list">
+                        {diet.map((item) => (
+                            <li key={item}>{item}</li>
                         ))}
                     </ul>
                 </div>

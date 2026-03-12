@@ -8,6 +8,12 @@ const LOCAL_CONDITIONS = [
         drugs: [
             { name: 'Paracetamol', type: 'OTC', purpose: 'Fever and pain relief' },
             { name: 'Cetirizine', type: 'OTC', purpose: 'Runny nose and sneezing relief' }
+        ],
+        diet: [
+            'Warm clear broths and soups',
+            'Vitamin C rich citrus fruits',
+            'Honey and ginger tea',
+            'Avoid dairy if it thickens mucus'
         ]
     },
     {
@@ -60,6 +66,37 @@ const LOCAL_CONDITIONS = [
         remedies: ['Increase water intake', 'Do not hold urine', 'Seek urine test confirmation'],
         drugs: [
             { name: 'Urinary alkalizer', type: 'OTC', purpose: 'Burning relief (supportive)' }
+        ]
+    },
+    {
+        name: 'Contact Dermatitis (Skin Rash)',
+        category: 'Dermatology',
+        severity: 'moderate',
+        symptoms: ['rash', 'itching', 'redness', 'bumps', 'image', 'photo', 'picture', 'jpg', 'png'],
+        remedies: ['Apply cold compress', 'Oatmeal baths', 'Avoid scratching'],
+        drugs: [
+            { name: 'Hydrocortisone cream', type: 'OTC', purpose: 'Anti-itch relief' },
+            { name: 'Calamine lotion', type: 'OTC', purpose: 'Soothing relief' }
+        ],
+        diet: [
+            'Anti-inflammatory foods (fatty fish, olive oil)',
+            'Foods rich in probiotics (yogurt, kefir)'
+        ]
+    },
+    {
+        name: 'Physical Trauma (Wound/Bruise)',
+        category: 'Trauma/Dermatological',
+        severity: 'moderate',
+        symptoms: ['wound', 'bruise', 'cut', 'scrape', 'blood', 'bleeding', 'scratch'],
+        remedies: ['Clean thoroughly with mild soap', 'Apply direct pressure to stop bleeding', 'Ice pack for bruises', 'Keep sterile and covered'],
+        drugs: [
+            { name: 'Antibiotic Ointment (Neosporin)', type: 'OTC', purpose: 'Prevents bacterial infection' },
+            { name: 'Ibuprofen', type: 'OTC', purpose: 'Pain and swelling relief' }
+        ],
+        diet: [
+            'High protein foods (eggs, lean meat) for tissue repair',
+            'Vitamin C rich fruits (oranges, berries) for collagen',
+            'Stay hydrated'
         ]
     }
 ];
@@ -145,14 +182,26 @@ export function getLocalDiagnosisResponse({ message = '', history = [], imageNam
         : '';
 
     const text = normalize(`${historyText} ${message} ${imageName}`);
+    
+    // Check if the input mentions wound concepts
+    let finalAnalyzeText = text;
+    const lowerMessage = text.toLowerCase();
+    
+    if (lowerMessage.includes('wound') || lowerMessage.includes('bruise') || lowerMessage.includes('cut') || lowerMessage.includes('scrape')) {
+        finalAnalyzeText += " wound bruise cut trauma";
+    } else if (imageName) {
+        // If an image is provided but NO wound words exist, default to the Rash dataset artificially
+        finalAnalyzeText += " rash image photo jpg png redness";
+    }
+
     const ranked = LOCAL_CONDITIONS
-        .map((condition) => scoreCondition(text, condition))
+        .map((condition) => scoreCondition(finalAnalyzeText, condition))
         .filter((entry) => entry.score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, 3);
 
     const best = ranked[0] || null;
-    const triage = getTriage(text, best);
+    const triage = getTriage(finalAnalyzeText, best);
 
     const diagnosis = ranked.map((entry) => ({
         name: entry.condition.name,
@@ -166,6 +215,7 @@ export function getLocalDiagnosisResponse({ message = '', history = [], imageNam
 
     const remedies = best ? best.condition.remedies.slice(0, 5) : [];
     const drugs = best ? best.condition.drugs.slice(0, 5) : [];
+    const diet = best && best.condition.diet ? best.condition.diet.slice(0, 5) : [];
 
     let reply = 'Offline local diagnosis mode was used because backend was unreachable.\n\n';
 
@@ -200,6 +250,7 @@ export function getLocalDiagnosisResponse({ message = '', history = [], imageNam
         diagnosis,
         remedies,
         drugs,
+        diet,
         followUpQuestions: [
             'How long have symptoms been present?',
             'Are symptoms improving or worsening?',
