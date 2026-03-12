@@ -784,8 +784,8 @@
 }
 
 .btn-primary.btn-large {
-    background: var(--card);
-    color: var(--primary);
+    background: var(--card) !important;
+    color: var(--primary) !important;
 }
 
 .btn-primary.btn-large:hover {
@@ -794,14 +794,14 @@
 }
 
 .btn-outline.btn-large {
-    border: 2px solid white;
-    color: white;
-    background: transparent;
+    border: 2px solid white !important;
+    color: white !important;
+    background: transparent !important;
 }
 
 .btn-outline.btn-large:hover {
-    background: var(--card);
-    color: var(--primary);
+    background: white !important;
+    color: var(--primary) !important;
 }
 
 /* Responsive Design */
